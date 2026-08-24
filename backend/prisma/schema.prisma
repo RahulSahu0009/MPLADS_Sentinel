@@ -1,0 +1,453 @@
+// This Prisma schema is the canonical PostgreSQL blueprint for MPLADS Sentinel.
+// It is intentionally a design artifact and must be implemented in a future code pass.
+//
+// IMPORTANT
+// - PostgreSQL is the only supported database.
+// - MongoDB is forbidden.
+// - Keep this schema normalized and explainable for auditability.
+// - Use DECIMAL/NUMERIC for all financial values.
+//
+// ============================================================
+// IMPLEMENTATION PROMPT
+// FILE: backend/prisma/schema.prisma
+// ============================================================
+//
+// Implement the PostgreSQL schema for the MPLADS AI risk monitoring platform.
+// Use Prisma ORM with PostgreSQL as the database engine.
+//
+// PURPOSE:
+// Model the canonical application data for users, governance hierarchy, projects,
+// finances, anomalies, risk scores, alerts, data provenance, and audit history.
+//
+// RESPONSIBILITY:
+// - Define normalized tables and relations for all core entities.
+// - Maintain referential integrity for project ownership and analytical data.
+// - Keep project and financial records traceable to official or synthetic data sources.
+//
+// PROJECT CONTEXT:
+// MPLADS Sentinel is designed for MoSPI monitoring of scheme risk, irregularities,
+// duplicated works, cost overruns, delays, and compliance anomalies.
+//
+// TECHNOLOGIES:
+// PostgreSQL, Prisma, TypeScript, Node.js
+//
+// INPUTS:
+// - User and role metadata
+// - State/district/constituency hierarchy
+// - MP, agency, and project information
+// - Project financial and progress records
+// - Risk and alert outputs
+// - Audit logs and provenance metadata
+//
+// OUTPUTS:
+// - Prisma schema that can generate migration files and client code
+// - Strong typed relationships for all modules in the backend
+//
+// DEPENDENCIES:
+// - Prisma migration tool
+// - PostgreSQL managed database or local Postgres instance
+//
+// DATABASE DEPENDENCIES:
+// - Use `DataSource` enum to separate OFFICIAL_MPLADS and SYNTHETIC_DEMO.
+// - Use `RiskLevel`, `AlertStatus`, and anomaly enums as required.
+// - Define indexes for state, district, constituency, dates, project id, risk level, alert status.
+//
+// BUSINESS RULES:
+// - Every project must belong to a state/district/constituency or at minimum have nullable fields if not available.
+// - Financial amounts must use Decimal / Numeric.
+// - Projects should have `dataSource` and provenance metadata to distinguish official vs demo data.
+// - Alerts must reference project and anomaly data.
+// - Audit logs must capture actor and change history.
+//
+// ERROR HANDLING:
+// - Validate enums and required fields with Prisma schema constraints.
+// - Use explicit relation direction to avoid ambiguity.
+//
+// SECURITY REQUIREMENTS:
+// - User passwords must be hashed by backend auth service; do not store plaintext.
+// - Authorization is not implemented in schema; enforce it in middleware/services.
+//
+// ACCEPTANCE CRITERIA:
+// - Prisma schema compiles without errors.
+// - Normalized entities match the required domain model.
+// - Indexes cover high-volume querying and risk/alert workflows.
+// - The schema documents official and synthetic data provenance cleanly.
+//
+// WHAT NOT TO CHANGE:
+// - Do not add MongoDB models or collections.
+// - Do not add non-postgres-specific provider configuration.
+// - Do not implement business logic directly inside Prisma schema.
+//
+// IMPLEMENTATION NOTES:
+// - Keep the schema readable for future implementation.
+// - Add comments to every major section to support developer onboarding.
+// - Use enum values matching the system design, especially anomaly and risk classifications.
+//
+// ============================================================
+// END IMPLEMENTATION PROMPT
+// ============================================================
+
+// ===== Enums =====
+
+enum DataSource {
+  OFFICIAL_MPLADS
+  SYNTHETIC_DEMO
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  FALSE_POSITIVE
+}
+
+enum ProjectStatus {
+  PLANNED
+  SANCTIONED
+  IN_PROGRESS
+  COMPLETED
+  DELAYED
+  SUSPENDED
+  CANCELLED
+}
+
+enum AnomalyType {
+  COST_OVERRUN
+  FUND_UTILIZATION_ANOMALY
+  PROJECT_DELAY
+  POTENTIAL_DUPLICATE
+  EXPENDITURE_ANOMALY
+  COMPLIANCE_DEVIATION
+  DATA_INCONSISTENCY
+  POTENTIAL_IRREGULARITY
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum UserRole {
+  ADMIN
+  MINISTRY_AUTHORITY
+  STATE_AUTHORITY
+  DISTRICT_AUTHORITY
+  ANALYST
+}
+
+// ===== Core master data =====
+
+model Role {
+  id String @id @default(uuid())
+  name UserRole @unique
+  users User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  passwordHash String
+  fullName String
+  phone String?
+  roleId String
+  role Role @relation(fields: [roleId], references: [id])
+  stateId String?
+  state State? @relation(fields: [stateId], references: [id])
+  districtId String?
+  district District? @relation(fields: [districtId], references: [id])
+  constituencyId String?
+  constituency Constituency? @relation(fields: [constituencyId], references: [id])
+  isActive Boolean @default(true)
+  lastLoginAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auditLogs AuditLog[]
+
+  @@index([roleId])
+  @@index([stateId])
+  @@index([districtId])
+  @@index([constituencyId])
+}
+
+model State {
+  id String @id @default(uuid())
+  name String @unique
+  code String? @unique
+  projects Project[]
+  districts District[]
+  users User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
+
+model District {
+  id String @id @default(uuid())
+  name String
+  code String?
+  stateId String
+  state State @relation(fields: [stateId], references: [id])
+  projects Project[]
+  constituencies Constituency[]
+  users User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([stateId, name])
+  @@index([stateId])
+  @@index([name])
+}
+
+model Constituency {
+  id String @id @default(uuid())
+  name String
+  code String?
+  districtId String
+  district District @relation(fields: [districtId], references: [id])
+  projects Project[]
+  users User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([districtId, name])
+  @@index([districtId])
+  @@index([name])
+}
+
+model MP {
+  id String @id @default(uuid())
+  name String
+  constituencyId String?
+  constituency Constituency? @relation(fields: [constituencyId], references: [id])
+  projects Project[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([constituencyId])
+}
+
+model Agency {
+  id String @id @default(uuid())
+  name String @unique
+  type String?
+  projects Project[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
+
+// ===== Data provenance =====
+
+model DataSourceRecord {
+  id String @id @default(uuid())
+  sourceType DataSource
+  sourceUrl String?
+  fetchedAt DateTime @default(now())
+  refreshVersion Int @default(1)
+  metadata Json?
+  projects Project[]
+  aggregates AggregateStatistic[]
+
+  @@index([sourceType])
+}
+
+// ===== Project and program entities =====
+
+model Project {
+  id String @id @default(uuid())
+  externalId String?
+  title String
+  description String?
+  projectType String?
+  status ProjectStatus @default(PLANNED)
+  sanctionedAmount Decimal @db.Decimal(18, 2)
+  estimatedCost Decimal? @db.Decimal(18, 2)
+  totalExpenditure Decimal @db.Decimal(18, 2)
+  workOrderDate DateTime?
+  startDate DateTime?
+  expectedCompletionDate DateTime?
+  actualCompletionDate DateTime?
+  progressPercentage Decimal? @db.Decimal(5, 2)
+  districtId String?
+  district District? @relation(fields: [districtId], references: [id])
+  constituencyId String?
+  constituency Constituency? @relation(fields: [constituencyId], references: [id])
+  stateId String?
+  state State? @relation(fields: [stateId], references: [id])
+  agencyId String?
+  agency Agency? @relation(fields: [agencyId], references: [id])
+  mpId String?
+  mp MP? @relation(fields: [mpId], references: [id])
+  dataSourceId String?
+  dataSource DataSourceRecord? @relation(fields: [dataSourceId], references: [id])
+  dataSourceType DataSource @default(OFFICIAL_MPLADS)
+  isSyntheticDemo Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  financialRecords FinancialRecord[]
+  progressRecords ProgressRecord[]
+  anomalies Anomaly[]
+  riskScores RiskScore[]
+  alerts Alert[]
+  auditLogs AuditLog[]
+
+  @@index([status])
+  @@index([stateId])
+  @@index([districtId])
+  @@index([constituencyId])
+  @@index([agencyId])
+  @@index([mpId])
+  @@index([dataSourceType])
+  @@index([createdAt])
+  @@index([expectedCompletionDate])
+  @@index([status, createdAt])
+}
+
+model FinancialRecord {
+  id String @id @default(uuid())
+  projectId String
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  recordDate DateTime
+  sanctionedAmount Decimal? @db.Decimal(18, 2)
+  expenditure Decimal? @db.Decimal(18, 2)
+  utilizationRatio Decimal? @db.Decimal(10, 4)
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId, recordDate])
+  @@index([recordDate])
+}
+
+model ProgressRecord {
+  id String @id @default(uuid())
+  projectId String
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  recordDate DateTime
+  progressPercentage Decimal? @db.Decimal(5, 2)
+  physicalProgress Decimal? @db.Decimal(5, 2)
+  financialProgress Decimal? @db.Decimal(5, 2)
+  remarks String?
+  createdAt DateTime @default(now())
+
+  @@index([projectId, recordDate])
+  @@index([recordDate])
+}
+
+// ===== Analytics and anomaly records =====
+
+model Anomaly {
+  id String @id @default(uuid())
+  projectId String
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  anomalyType AnomalyType
+  severity Severity
+  ruleId String?
+  description String
+  evidence Json?
+  relevantValues Json?
+  isConfirmed Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  alerts Alert[]
+
+  @@index([projectId])
+  @@index([anomalyType])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+model RiskScore {
+  id String @id @default(uuid())
+  projectId String
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  riskScore Int
+  riskLevel RiskLevel
+  reasons Json
+  contributingSignals Json?
+  modelVersion String?
+  calculatedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+  @@index([riskLevel])
+  @@index([calculatedAt])
+}
+
+model Alert {
+  id String @id @default(uuid())
+  projectId String
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  anomalyId String?
+  anomaly Anomaly? @relation(fields: [anomalyId], references: [id])
+  alertId String @unique
+  anomalyType AnomalyType
+  severity Severity
+  riskScore Int
+  message String
+  status AlertStatus @default(OPEN)
+  createdAt DateTime @default(now())
+  resolvedAt DateTime?
+
+  @@index([projectId])
+  @@index([status])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id String @id @default(uuid())
+  event String
+  actorId String?
+  actor User? @relation(fields: [actorId], references: [id])
+  entity String
+  entityId String?
+  oldValue Json?
+  newValue Json?
+  metadata Json?
+  timestamp DateTime @default(now())
+  projectId String?
+  project Project? @relation(fields: [projectId], references: [id])
+
+  @@index([event])
+  @@index([entity])
+  @@index([timestamp])
+  @@index([projectId])
+}
+
+model AggregateStatistic {
+  id String @id @default(uuid())
+  sourceId String?
+  source DataSourceRecord? @relation(fields: [sourceId], references: [id])
+  stateName String?
+  districtName String?
+  year Int?
+  month Int?
+  totalProjects Int?
+  totalSanctionedAmount Decimal? @db.Decimal(18, 2)
+  totalExpenditure Decimal? @db.Decimal(18, 2)
+  meanUtilizationRatio Decimal? @db.Decimal(10, 4)
+  highRiskCount Int?
+  criticalRiskCount Int?
+  createdAt DateTime @default(now())
+
+  @@index([stateName])
+  @@index([districtName])
+  @@index([year, month])
+}

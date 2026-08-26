@@ -47,4 +47,27 @@ IMPLEMENTATION NOTES:
 - Keep schema objects aligned with the final risk API contract
 */
 
-export const riskAnalysisSchema = {};
+import { z } from 'zod';
+
+const parseNumber = (value) => {
+  if (value === undefined || value === null || value === '') return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : value;
+};
+
+export const riskAnalysisSchema = z.object({
+  projectId: z.string().uuid(),
+  persist: z.boolean().optional(),
+  ruleResults: z.array(z.object({
+    severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).optional(),
+    score: z.preprocess(parseNumber, z.number().min(0).max(100)).optional(),
+    reason: z.string().trim().min(1).max(500).optional(),
+    type: z.string().trim().min(1).max(120).optional(),
+    description: z.string().trim().min(1).max(1000).optional(),
+  }).passthrough()).optional(),
+  mlResult: z.object({
+    anomalyScore: z.preprocess(parseNumber, z.number().min(0)).optional(),
+    riskScore: z.preprocess(parseNumber, z.number().min(0).max(100)).optional(),
+    modelVersion: z.string().trim().min(1).max(120).optional(),
+  }).passthrough().optional(),
+}).strict();

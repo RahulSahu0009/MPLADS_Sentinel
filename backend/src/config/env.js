@@ -48,9 +48,27 @@ IMPLEMENTATION NOTES:
 - Keep the file minimal and focused on runtime config
 */
 
+const nodeEnv = process.env.NODE_ENV ?? 'development';
+
+const requireInProduction = (name, fallback) => {
+  const value = process.env[name] ?? fallback;
+  if (nodeEnv === 'production' && (value === undefined || value === null || value === '')) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
+};
+
+const parsePort = (value) => {
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed) || parsed <= 0) {
+    throw new Error('Invalid PORT: must be a positive integer');
+  }
+  return parsed;
+};
+
 export const config = {
-  nodeEnv: process.env.NODE_ENV ?? 'development',
-  port: Number(process.env.PORT ?? 4000),
+  nodeEnv,
+  port: parsePort(process.env.PORT ?? '4000'),
   databaseUrl: process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/mplads_sentinel',
   jwtSecret: process.env.JWT_SECRET ?? 'development-secret',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '7d',

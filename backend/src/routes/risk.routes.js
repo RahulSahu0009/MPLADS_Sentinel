@@ -53,22 +53,30 @@ import { Router } from 'express';
 import { RiskController } from '../controllers/risk.controller.js';
 import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
 import { riskAnalysisSchema } from '../validators/risk.validator.js';
+import { asyncHandler } from '../lib/async-handler.js';
+import { WRITE_ROLES } from '../constants/rbac.js';
 
 export const riskRouter = Router();
 const controller = new RiskController();
+const badRequest = (message, issues) => {
+  const error = new Error(message);
+  error.status = 400;
+  error.issues = issues;
+  return error;
+};
 
-riskRouter.post('/analyze', requireAuth, requireRole(['ADMIN', 'OFFICER']), async (req, res) => {
+riskRouter.post('/analyze', requireAuth, requireRole(WRITE_ROLES), asyncHandler(async (req, res) => {
   const parsed = riskAnalysisSchema.safeParse ? riskAnalysisSchema.safeParse(req.body) : { success: true, data: req.body };
 
   if (!parsed.success) {
-    return res.status(400).json({ message: 'Invalid risk analysis payload', issues: parsed.error?.issues ?? [] });
+    throw badRequest('Invalid risk analysis payload', parsed.error?.issues ?? []);
   }
 
   const result = await controller.analyzeProjectRisk(parsed.data, req.user);
   res.json(result);
-});
+}));
 
-riskRouter.get('/projects/:id', requireAuth, async (req, res) => {
+riskRouter.get('/projects/:id', requireAuth, asyncHandler(async (req, res) => {
   const result = await controller.getProjectRisk(req.params.id, req.user);
   res.json(result);
-});
+}));

@@ -46,14 +46,54 @@ IMPLEMENTATION NOTES:
 - Include a method to fetch the latest project risk score for detail and dashboard workflows
 */
 
+import { prisma } from '../config/prisma.js';
+
+const normalizeScore = (score) => {
+  const numericScore = Number(score);
+  if (!Number.isFinite(numericScore) || numericScore < 0 || numericScore > 100) {
+    throw new Error('RiskRepository.create requires riskScore between 0 and 100');
+  }
+
+  return Math.round(numericScore);
+};
+
 export class RiskRepository {
   async create(riskPayload) {
-    // TODO: insert risk snapshot into Prisma RiskScore model
-    return riskPayload;
+    const { projectId, riskScore, riskLevel, reasons, contributingSignals, modelVersion, calculatedAt } = riskPayload || {};
+
+    if (!projectId) {
+      throw new Error('RiskRepository.create requires projectId');
+    }
+
+    if (!riskLevel) {
+      throw new Error('RiskRepository.create requires riskLevel');
+    }
+
+    if (!Array.isArray(reasons) || reasons.length === 0) {
+      throw new Error('RiskRepository.create requires non-empty reasons');
+    }
+
+    return prisma.riskScore.create({
+      data: {
+        projectId,
+        riskScore: normalizeScore(riskScore),
+        riskLevel,
+        reasons,
+        contributingSignals: contributingSignals ?? null,
+        modelVersion: modelVersion ?? null,
+        calculatedAt: calculatedAt ? new Date(calculatedAt) : undefined,
+      },
+    });
   }
 
   async findLatestByProjectId(projectId) {
-    // TODO: fetch most recent risk score for a project
-    return { projectId, riskScore: 0 };
+    if (!projectId) {
+      throw new Error('RiskRepository.findLatestByProjectId requires projectId');
+    }
+
+    return prisma.riskScore.findFirst({
+      where: { projectId },
+      orderBy: { calculatedAt: 'desc' },
+    });
   }
 }

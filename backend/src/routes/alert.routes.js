@@ -50,16 +50,18 @@ IMPLEMENTATION NOTES:
 import { Router } from 'express';
 import { AlertController } from '../controllers/alert.controller.js';
 import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
+import { asyncHandler } from '../lib/async-handler.js';
+import { WRITE_ROLES } from '../constants/rbac.js';
 
 export const alertRouter = Router();
 const controller = new AlertController();
 
-alertRouter.get('/', requireAuth, async (req, res) => {
+alertRouter.get('/', requireAuth, asyncHandler(async (req, res) => {
   const result = await controller.listAlerts(req.query, req.user);
   res.json(result);
-});
+}));
 
-alertRouter.patch('/:id/status', requireAuth, requireRole(['ADMIN', 'OFFICER']), async (req, res) => {
+alertRouter.patch('/:id/status', requireAuth, requireRole(WRITE_ROLES), asyncHandler(async (req, res) => {
   const result = await controller.updateAlertStatus(req.params.id, req.body, req.user);
   res.json(result);
-});
+}));

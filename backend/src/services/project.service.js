@@ -50,29 +50,101 @@ IMPLEMENTATION NOTES:
 - Keep service methods reusable and focused on domain behavior
 */
 
+import { ProjectRepository } from '../repositories/project.repository.js';
+import { RiskService } from './risk.service.js';
+
+const withStatus = (message, status) => {
+  const error = new Error(message);
+  error.status = status;
+  return error;
+};
+
 export class ProjectService {
+  constructor({ projectRepository = new ProjectRepository(), riskService = new RiskService() } = {}) {
+    this.projectRepository = projectRepository;
+    this.riskService = riskService;
+  }
+
   async listProjects(filters = {}) {
-    // TODO: query repository with normalized filters and return a paginated result
-    return { data: [], meta: { total: 0, page: 1, pageSize: 25 } };
+    const result = await this.projectRepository.findMany(filters);
+    return {
+      data: result.items,
+      meta: result.pagination,
+    };
   }
 
   async getProjectById(projectId) {
-    // TODO: fetch project with related financial, progress, and risk metadata
-    return { id: projectId, status: 'PENDING' };
+    if (!projectId) {
+      throw withStatus('Project id is required', 400);
+    }
+
+    const project = await this.projectRepository.findById(projectId);
+    if (!project) {
+      throw withStatus('Project not found', 404);
+    }
+
+    return project;
   }
 
   async createProject(projectInput) {
-    // TODO: validate payload, normalize values, and persist through the repository
-    return { ...projectInput, id: 'generated-project-id' };
+    if (!projectInput?.title) {
+      throw withStatus('Project title is required', 400);
+    }
+
+    if (projectInput.sanctionedAmount === undefined || projectInput.sanctionedAmount === null) {
+      throw withStatus('sanctionedAmount is required', 400);
+    }
+
+    const isSyntheticDemo = projectInput.isSyntheticDemo ?? projectInput.dataSourceType === 'SYNTHETIC_DEMO';
+    const dataSourceType = projectInput.dataSourceType ?? (isSyntheticDemo ? 'SYNTHETIC_DEMO' : 'OFFICIAL_MPLADS');
+
+    return this.projectRepository.create({
+      ...projectInput,
+      dataSourceType,
+      isSyntheticDemo,
+      totalExpenditure: projectInput.totalExpenditure ?? 0,
+    });
   }
 
   async updateProject(projectId, updates) {
-    // TODO: enforce allowed updates and record audit metadata
-    return { id: projectId, ...updates };
+    if (!projectId) {
+      throw withStatus('Project id is required', 400);
+    }
+
+    if (!updates || Object.keys(updates).length === 0) {
+      throw withStatus('At least one update field is required', 400);
+    }
+
+    return this.projectRepository.update(projectId, updates);
   }
 
   async analyzeProject(projectId, options = {}) {
-    // TODO: invoke analysis orchestration and return project + risk summary
-    return { projectId, analysis: { status: 'queued' }, options };
+    const project = await this.getProjectById(projectId);
+    const riskPayload = await this.riskService.computeRisk(
+      project,
+      options.ruleResults ?? [],
+      options.mlResult ?? null
+    );
+
+    const shouldPersist = options.persist !== false;
+    const persisted = shouldPersist
+      ? await this.riskService.saveRiskSnapshot(riskPayload)
+      : riskPayload;
+
+    return {
+      projectId,
+      analysis: { status: shouldPersist ? 'completed' : 'computed' },
+      risk: persisted,
+    };
+  }
+
+  async getProjectAnomalies(projectId) {
+    const project = await this.getProjectById(projectId);
+    return project.anomalies ?? [];
+  }
+
+  async getProjectRisk(projectId) {
+    await this.getProjectById(projectId);
+    return this.riskService.getLatestRiskByProjectId(projectId);
   }
 }

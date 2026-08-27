@@ -1,0 +1,8 @@
+external_id,title,state_name,district_name,constituency_name,status,sanctioned_amount,total_expenditure,start_date,expected_completion_date,actual_completion_date,progress_percentage,data_source_type,is_synthetic_demo,scenario_label,notes
+SYN-2026-0001,Normal School Repair,Odisha,Cuttack,Cuttack North,COMPLETED,5000000.00,4920000.00,2025-01-10,2025-09-30,2025-09-20,100.00,SYNTHETIC_DEMO,true,normal,On-time and on-budget
+SYN-2026-0002,Bridge Expansion Delayed,Bihar,Patna,Patna Central,DELAYED,32000000.00,19800000.00,2024-04-01,2025-03-31,,61.80,SYNTHETIC_DEMO,true,delayed,Expected completion exceeded with partial progress
+SYN-2026-0003,Irrigation Channel Overrun,Assam,Kamrup,Guwahati East,IN_PROGRESS,12000000.00,16800000.00,2025-02-15,2026-02-14,,75.40,SYNTHETIC_DEMO,true,cost-overrun,Expenditure exceeds sanctioned amount
+SYN-2026-0004,Primary Health Unit Block A,Telangana,Hyderabad,Secunderabad,IN_PROGRESS,9000000.00,6450000.00,2025-05-01,2026-04-30,,52.00,SYNTHETIC_DEMO,true,duplicate-candidate,Potential overlap with SYN-2026-0005 by location/name pattern
+SYN-2026-0005,Primary Health Unit Block-A Upgrade,Telangana,Hyderabad,Secunderabad,IN_PROGRESS,9200000.00,6580000.00,2025-05-20,2026-05-15,,49.50,SYNTHETIC_DEMO,true,duplicate-candidate,Potential overlap with SYN-2026-0004
+SYN-2026-0006,Rural Water Point Renewal,Jharkhand,Ranchi,Ranchi West,PLANNED,4100000.00,0.00,2026-09-15,2027-03-31,,0.00,SYNTHETIC_DEMO,true,incomplete,Minimal records to test missing downstream data handling
+SYN-2026-0007,Market Yard Renovation,Kerala,Ernakulam,Ernakulam Urban,IN_PROGRESS,10000000.00,1200000.00,2025-06-01,2026-05-31,,85.00,SYNTHETIC_DEMO,true,unusual-utilization,High physical progress with low expenditure utilization

@@ -1,72 +1,38 @@
-/*
-IMPLEMENTATION PROMPT
-FILE: backend/src/routes/auth.routes.js
-PURPOSE:
-Expose authentication endpoints for login and token-based access.
-
-PROJECT CONTEXT:
-Role-based access to the MPLADS Sentinel platform requires secure authentication and authorization.
-
-TECHNOLOGIES:
-Express, JavaScript, JWT
-
-INPUTS:
-- Login credentials and optional refresh payload
-
-OUTPUTS:
-- JWT token and user session metadata
-
-DEPENDENCIES:
-- ../controllers/auth.controller.js
-- ../validators/auth.validator.js
-- ../middleware/auth.middleware.js
-
-DATABASE DEPENDENCIES:
-- User, Role
-
-API DEPENDENCIES:
-- POST /api/auth/login
-- POST /api/auth/refresh
-- POST /api/auth/logout
-
-BUSINESS RULES:
-- Passwords must be verified against hashed records only
-- Role metadata must be encoded in the JWT payload
-
-ERROR HANDLING:
-- Return 401 for invalid credentials, 400 for malformed input
-
-SECURITY REQUIREMENTS:
-- Use environment-based secret management and never expose raw credentials
-
-ACCEPTANCE CRITERIA:
-- Login route returns a valid JWT for recognized users
-- Protected routes enforce token validation
-
-WHAT NOT TO CHANGE:
-- Do not implement auth logic in the route file
-
-IMPLEMENTATION NOTES:
-- Keep auth flows logically distinct from project and risk logic
-*/
-
 import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller.js';
+import { asyncHandler } from '../lib/async-handler.js';
+import { createHttpError } from '../lib/http-error.js';
+import { loginSchema, logoutSchema, refreshSchema } from '../validators/auth.validator.js';
 
 export const authRouter = Router();
 const controller = new AuthController();
 
-authRouter.post('/login', async (req, res) => {
-  const result = await controller.login(req.body);
-  res.json(result);
-});
+authRouter.post('/login', asyncHandler(async (req, res) => {
+  const parsed = loginSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw createHttpError(400, 'Invalid login payload', { issues: parsed.error.issues });
+  }
 
-authRouter.post('/refresh', async (req, res) => {
-  const result = await controller.refreshToken(req.body);
+  const result = await controller.login(parsed.data);
   res.json(result);
-});
+}));
 
-authRouter.post('/logout', async (req, res) => {
-  const result = await controller.logout(req.body);
+authRouter.post('/refresh', asyncHandler(async (req, res) => {
+  const parsed = refreshSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw createHttpError(400, 'Invalid refresh payload', { issues: parsed.error.issues });
+  }
+
+  const result = await controller.refreshToken(parsed.data);
   res.json(result);
-});
+}));
+
+authRouter.post('/logout', asyncHandler(async (req, res) => {
+  const parsed = logoutSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw createHttpError(400, 'Invalid logout payload', { issues: parsed.error.issues });
+  }
+
+  const result = await controller.logout(parsed.data);
+  res.json(result);
+}));

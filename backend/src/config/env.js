@@ -48,11 +48,11 @@ IMPLEMENTATION NOTES:
 - Keep the file minimal and focused on runtime config
 */
 
-const nodeEnv = process.env.NODE_ENV ?? 'development';
+const nodeEnv = (process.env.NODE_ENV ?? 'development').trim() || 'development';
 
-const requireInProduction = (name, fallback) => {
-  const value = process.env[name] ?? fallback;
-  if (nodeEnv === 'production' && (value === undefined || value === null || value === '')) {
+const requireInProduction = (name, fallbackValue) => {
+  const value = process.env[name] ?? fallbackValue;
+  if (nodeEnv === 'production' && (!value || String(value).trim() === '')) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
   return value;
@@ -69,9 +69,11 @@ const parsePort = (value) => {
 export const config = {
   nodeEnv,
   port: parsePort(process.env.PORT ?? '4000'),
-  databaseUrl: process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/mplads_sentinel',
-  jwtSecret: process.env.JWT_SECRET ?? 'development-secret',
+  databaseUrl: requireInProduction('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/mplads_sentinel'),
+  jwtSecret: requireInProduction('JWT_SECRET', 'development-secret-change-me'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
   mlServiceUrl: process.env.ML_SERVICE_URL ?? 'http://localhost:8000',
   frontendOrigin: process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173',
 };
+
+export const isProduction = nodeEnv === 'production';

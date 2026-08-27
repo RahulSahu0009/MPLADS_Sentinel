@@ -46,14 +46,23 @@ IMPLEMENTATION NOTES:
 - Keep the controller response format clean and reusable for the frontend
 */
 
+import { AlertService } from '../services/alert.service.js';
+
 export class AlertController {
+  constructor({ alertService = new AlertService() } = {}) {
+    this.alertService = alertService;
+  }
+
   async listAlerts(filters = {}, user = null) {
-    // TODO: fetch alert queue and enforce access permissions
-    return { data: [], filters, user: user?.id ?? null };
+    const result = await this.alertService.listAlerts(filters);
+    return {
+      data: result.items,
+      meta: result.pagination,
+    };
   }
 
   async updateAlertStatus(alertId, payload = {}, user = null) {
-    // TODO: validate status transition and call AlertService
-    return { id: alertId, status: payload?.status ?? 'OPEN', user: user?.id ?? null };
+    const updated = await this.alertService.updateAlertStatus(alertId, payload);
+    return { data: updated };
   }
 }

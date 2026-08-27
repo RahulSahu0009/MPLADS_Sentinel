@@ -53,6 +53,7 @@ IMPLEMENTATION NOTES:
 
 import express from 'express';
 import cors from 'cors';
+import { config } from './config/env.js';
 import { projectRouter } from './routes/project.routes.js';
 import { alertRouter } from './routes/alert.routes.js';
 import { analyticsRouter } from './routes/analytics.routes.js';
@@ -61,7 +62,7 @@ import { riskRouter } from './routes/risk.routes.js';
 
 export const app = express();
 
-app.use(cors({ origin: process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173', credentials: true }));
+app.use(cors({ origin: config.frontendOrigin, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 
 app.get('/health', (_req, res) => {
@@ -78,6 +79,7 @@ app.use((err, _req, res, _next) => {
   console.error(err);
   res.status(err.status || 500).json({
     message: err.message || 'Internal server error',
-    error: process.env.NODE_ENV === 'production' ? undefined : err.stack,
+    issues: err.issues || undefined,
+    error: config.nodeEnv === 'production' ? undefined : err.stack,
   });
 });

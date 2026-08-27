@@ -47,5 +47,22 @@ IMPLEMENTATION NOTES:
 */
 
 import { PrismaClient } from '@prisma/client';
+import { config } from './env.js';
 
-export const prisma = new PrismaClient();
+const globalForPrisma = globalThis;
+
+const createPrismaClient = () =>
+  new PrismaClient({
+    datasources: {
+      db: {
+        url: config.databaseUrl,
+      },
+    },
+    log: config.nodeEnv === 'development' ? ['warn', 'error'] : ['error'],
+  });
+
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+
+if (config.nodeEnv !== 'production') {
+  globalForPrisma.prisma = prisma;
+}

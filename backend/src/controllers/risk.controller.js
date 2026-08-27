@@ -47,14 +47,49 @@ IMPLEMENTATION NOTES:
 - Keep the response contract aligned with the frontend and database schema
 */
 
+import { ProjectService } from '../services/project.service.js';
+import { RiskService } from '../services/risk.service.js';
+import { riskAnalysisSchema } from '../validators/risk.validator.js';
+
+const withStatus = (message, status, issues) => {
+  const error = new Error(message);
+  error.status = status;
+  if (issues) {
+    error.issues = issues;
+  }
+
+  return error;
+};
+
 export class RiskController {
+  constructor({ riskService = new RiskService(), projectService = new ProjectService() } = {}) {
+    this.riskService = riskService;
+    this.projectService = projectService;
+  }
+
   async analyzeProjectRisk(payload = {}, user = null) {
-    // TODO: validate payload and call AnalysisService / RiskService
-    return { projectId: payload.projectId ?? null, risk: null, user: user?.id ?? null };
+    const parsed = riskAnalysisSchema.safeParse(payload);
+    if (!parsed.success) {
+      throw withStatus('Invalid risk analysis payload', 400, parsed.error.issues);
+    }
+
+    const project = await this.projectService.getProjectById(parsed.data.projectId);
+    const riskPayload = await this.riskService.computeRisk(
+      project,
+      parsed.data.ruleResults ?? [],
+      parsed.data.mlResult ?? null
+    );
+
+    const shouldPersist = parsed.data.persist !== false;
+    const risk = shouldPersist
+      ? await this.riskService.saveRiskSnapshot(riskPayload)
+      : riskPayload;
+
+    return { projectId: parsed.data.projectId, risk };
   }
 
   async getProjectRisk(projectId, user = null) {
-    // TODO: fetch risk score for a project
-    return { projectId, risk: null, user: user?.id ?? null };
+    const risk = await this.projectService.getProjectRisk(projectId);
+    return { projectId, risk };
   }
 }

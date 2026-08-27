@@ -52,21 +52,22 @@ IMPLEMENTATION NOTES:
 import { Router } from 'express';
 import { AnalyticsController } from '../controllers/analytics.controller.js';
 import { requireAuth } from '../middleware/auth.middleware.js';
+import { asyncHandler } from '../lib/async-handler.js';
 
 export const analyticsRouter = Router();
 const controller = new AnalyticsController();
 
-analyticsRouter.get('/state', requireAuth, async (req, res) => {
+analyticsRouter.get('/state', requireAuth, asyncHandler(async (req, res) => {
   const result = await controller.getStateAnalytics(req.query, req.user);
   res.json(result);
-});
+}));
 
-analyticsRouter.get('/district', requireAuth, async (req, res) => {
+analyticsRouter.get('/district', requireAuth, asyncHandler(async (req, res) => {
   const result = await controller.getDistrictAnalytics(req.query, req.user);
   res.json(result);
-});
+}));
 
-analyticsRouter.get('/dashboard/stats', requireAuth, async (req, res) => {
+analyticsRouter.get('/dashboard/stats', requireAuth, asyncHandler(async (req, res) => {
   const result = await controller.getDashboardStats(req.query, req.user);
   res.json(result);
-});
+}));

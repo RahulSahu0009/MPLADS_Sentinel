@@ -57,36 +57,61 @@ IMPLEMENTATION NOTES:
 import { Router } from 'express';
 import { ProjectController } from '../controllers/project.controller.js';
 import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
+import { projectAnalyzeSchema, projectCreateSchema, projectQuerySchema } from '../validators/project.validator.js';
+import { asyncHandler } from '../lib/async-handler.js';
+import { WRITE_ROLES } from '../constants/rbac.js';
 
 export const projectRouter = Router();
 const controller = new ProjectController();
 
-projectRouter.get('/', requireAuth, async (req, res) => {
-  const result = await controller.listProjects(req.query, req.user);
-  res.json(result);
-});
+const badRequest = (message, issues) => {
+  const error = new Error(message);
+  error.status = 400;
+  error.issues = issues;
+  return error;
+};
 
-projectRouter.get('/:id', requireAuth, async (req, res) => {
+projectRouter.get('/', requireAuth, asyncHandler(async (req, res) => {
+  const parsed = projectQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    throw badRequest('Invalid project query filters', parsed.error.issues);
+  }
+
+  const result = await controller.listProjects(parsed.data, req.user);
+  res.json(result);
+}));
+
+projectRouter.get('/:id', requireAuth, asyncHandler(async (req, res) => {
   const result = await controller.getProjectById(req.params.id, req.user);
   res.json(result);
-});
+}));
 
-projectRouter.post('/', requireAuth, requireRole(['ADMIN', 'OFFICER']), async (req, res) => {
-  const result = await controller.createProject(req.body, req.user);
+projectRouter.post('/', requireAuth, requireRole(WRITE_ROLES), asyncHandler(async (req, res) => {
+  const parsed = projectCreateSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw badRequest('Invalid project payload', parsed.error.issues);
+  }
+
+  const result = await controller.createProject(parsed.data, req.user);
   res.status(201).json(result);
-});
+}));
 
-projectRouter.post('/:id/analyze', requireAuth, requireRole(['ADMIN', 'OFFICER']), async (req, res) => {
-  const result = await controller.analyzeProject(req.params.id, req.body, req.user);
+projectRouter.post('/:id/analyze', requireAuth, requireRole(WRITE_ROLES), asyncHandler(async (req, res) => {
+  const parsed = projectAnalyzeSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw badRequest('Invalid analyze payload', parsed.error.issues);
+  }
+
+  const result = await controller.analyzeProject(req.params.id, parsed.data, req.user);
   res.json(result);
-});
+}));
 
-projectRouter.get('/:id/anomalies', requireAuth, async (req, res) => {
+projectRouter.get('/:id/anomalies', requireAuth, asyncHandler(async (req, res) => {
   const result = await controller.getProjectAnomalies(req.params.id, req.user);
   res.json(result);
-});
+}));
 
-projectRouter.get('/:id/risk', requireAuth, async (req, res) => {
+projectRouter.get('/:id/risk', requireAuth, asyncHandler(async (req, res) => {
   const result = await controller.getProjectRisk(req.params.id, req.user);
   res.json(result);
-});
+}));

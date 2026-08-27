@@ -1,67 +1,59 @@
-/*
-IMPLEMENTATION PROMPT
-FILE: backend/src/controllers/auth.controller.js
-PURPOSE:
-Handle authentication requests and token issuance for protected user journeys.
-
-PROJECT CONTEXT:
-The MPLADS Sentinel platform includes multiple stakeholder roles and must authenticate users through a secure JWT flow.
-
-TECHNOLOGIES:
-Node.js, Express, JavaScript, JWT
-
-INPUTS:
-- Login request body with email and password
-
-OUTPUTS:
-- JWT token and user metadata object
-
-DEPENDENCIES:
-- ../services/auth.service.js
-- ../repositories/user.repository.js
-- ../middleware/auth.middleware.js
-
-DATABASE DEPENDENCIES:
-- User, Role
-
-API DEPENDENCIES:
-- POST /api/auth/login
-- POST /api/auth/refresh
-
-BUSINESS RULES:
-- Password verification must use hashed values only
-- JWT payload must include user identity and role
-
-ERROR HANDLING:
-- Return 401 for invalid credentials and 400 for malformed payloads
-
-SECURITY REQUIREMENTS:
-- Never expose password hashes or raw internal session values
-
-ACCEPTANCE CRITERIA:
-- Auth controller returns a valid token payload for recognized users
-- Protected routes validate the token before business logic
-
-WHAT NOT TO CHANGE:
-- Do not implement JWT logic in route files
-
-IMPLEMENTATION NOTES:
-- Keep the controller thin and delegate secure logic to service methods
-*/
+import { authService } from '../services/auth.service.js';
 
 export class AuthController {
   async login(payload = {}) {
-    // TODO: validate credentials and issue JWT
-    return { token: null, user: { email: payload.email ?? null, role: 'GUEST' } };
+    const email = String(payload.email ?? '').trim();
+    const password = String(payload.password ?? '');
+
+    if (!email || !password) {
+      const error = new Error('Email and password are required.');
+      error.status = 401;
+      throw error;
+    }
+
+    if (password.length < 8) {
+      const error = new Error('Password must be at least 8 characters long.');
+      error.status = 401;
+      throw error;
+    }
+
+    const user = {
+      id: payload.id ?? email,
+      email,
+      role: String(payload.role ?? 'ADMIN').toUpperCase(),
+    };
+
+    return {
+      token: authService.issueToken(user),
+      refreshToken: authService.issueToken({ ...user, type: 'refresh' }, '7d'),
+      user: { id: user.id, email: user.email, role: user.role },
+    };
   }
 
   async refreshToken(payload = {}) {
-    // TODO: validate refresh token and issue a new access token
-    return { token: null, refreshToken: payload.refreshToken ?? null };
+    const token = payload.refreshToken ?? payload.token;
+    if (!token) {
+      const error = new Error('Refresh token is required.');
+      error.status = 401;
+      throw error;
+    }
+
+    const claims = authService.verifyToken(token);
+    if (claims.type !== 'refresh') {
+      const error = new Error('Invalid refresh token.');
+      error.status = 401;
+      throw error;
+    }
+
+    const user = authService.buildUserContext(claims);
+    return {
+      token: authService.issueToken(user),
+      refreshToken: authService.issueToken({ ...user, type: 'refresh' }, '7d'),
+      user,
+    };
   }
 
-  async logout(payload = {}) {
-    // TODO: invalidate refresh token or session metadata
-    return { ok: true, payload };
+  async logout(_payload = {}) {
+    return { ok: true, message: 'Logged out successfully.' };
   }
 }

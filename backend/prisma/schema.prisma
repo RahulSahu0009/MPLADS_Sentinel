@@ -87,6 +87,15 @@
 // END IMPLEMENTATION PROMPT
 // ============================================================
 
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
 // ===== Enums =====
 
 enum DataSource {
@@ -147,31 +156,31 @@ enum UserRole {
 // ===== Core master data =====
 
 model Role {
-  id String @id @default(uuid())
-  name UserRole @unique
-  users User[]
+  id        String   @id @default(uuid())
+  name      UserRole @unique
+  users     User[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model User {
-  id String @id @default(uuid())
-  email String @unique
-  passwordHash String
-  fullName String
-  phone String?
-  roleId String
-  role Role @relation(fields: [roleId], references: [id])
-  stateId String?
-  state State? @relation(fields: [stateId], references: [id])
-  districtId String?
-  district District? @relation(fields: [districtId], references: [id])
+  id             String        @id @default(uuid())
+  email          String        @unique
+  passwordHash   String
+  fullName       String
+  phone          String?
+  roleId         String
+  role           Role          @relation(fields: [roleId], references: [id])
+  stateId        String?
+  state          State?        @relation(fields: [stateId], references: [id])
+  districtId     String?
+  district       District?     @relation(fields: [districtId], references: [id])
   constituencyId String?
-  constituency Constituency? @relation(fields: [constituencyId], references: [id])
-  isActive Boolean @default(true)
-  lastLoginAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  constituency   Constituency? @relation(fields: [constituencyId], references: [id])
+  isActive       Boolean       @default(true)
+  lastLoginAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   auditLogs AuditLog[]
 
@@ -182,29 +191,29 @@ model User {
 }
 
 model State {
-  id String @id @default(uuid())
-  name String @unique
-  code String? @unique
-  projects Project[]
+  id        String     @id @default(uuid())
+  name      String     @unique
+  code      String?    @unique
+  projects  Project[]
   districts District[]
-  users User[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  users     User[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   @@index([name])
 }
 
 model District {
-  id String @id @default(uuid())
-  name String
-  code String?
-  stateId String
-  state State @relation(fields: [stateId], references: [id])
-  projects Project[]
+  id             String         @id @default(uuid())
+  name           String
+  code           String?
+  stateId        String
+  state          State          @relation(fields: [stateId], references: [id])
+  projects       Project[]
   constituencies Constituency[]
-  users User[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  users          User[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   @@unique([stateId, name])
   @@index([stateId])
@@ -212,15 +221,16 @@ model District {
 }
 
 model Constituency {
-  id String @id @default(uuid())
-  name String
-  code String?
+  id         String    @id @default(uuid())
+  name       String
+  code       String?
   districtId String
-  district District @relation(fields: [districtId], references: [id])
-  projects Project[]
-  users User[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  district   District  @relation(fields: [districtId], references: [id])
+  projects   Project[]
+  mps        MP[]
+  users      User[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@unique([districtId, name])
   @@index([districtId])
@@ -228,24 +238,24 @@ model Constituency {
 }
 
 model MP {
-  id String @id @default(uuid())
-  name String
+  id             String        @id @default(uuid())
+  name           String
   constituencyId String?
-  constituency Constituency? @relation(fields: [constituencyId], references: [id])
-  projects Project[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  constituency   Constituency? @relation(fields: [constituencyId], references: [id])
+  projects       Project[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@index([constituencyId])
 }
 
 model Agency {
-  id String @id @default(uuid())
-  name String @unique
-  type String?
-  projects Project[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String    @id @default(uuid())
+  name      String    @unique
+  type      String?
+  projects  Project[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@index([name])
 }
@@ -253,14 +263,14 @@ model Agency {
 // ===== Data provenance =====
 
 model DataSourceRecord {
-  id String @id @default(uuid())
-  sourceType DataSource
-  sourceUrl String?
-  fetchedAt DateTime @default(now())
-  refreshVersion Int @default(1)
-  metadata Json?
-  projects Project[]
-  aggregates AggregateStatistic[]
+  id             String               @id @default(uuid())
+  sourceType     DataSource
+  sourceUrl      String?
+  fetchedAt      DateTime             @default(now())
+  refreshVersion Int                  @default(1)
+  metadata       Json?
+  projects       Project[]
+  aggregates     AggregateStatistic[]
 
   @@index([sourceType])
 }
@@ -268,43 +278,43 @@ model DataSourceRecord {
 // ===== Project and program entities =====
 
 model Project {
-  id String @id @default(uuid())
-  externalId String?
-  title String
-  description String?
-  projectType String?
-  status ProjectStatus @default(PLANNED)
-  sanctionedAmount Decimal @db.Decimal(18, 2)
-  estimatedCost Decimal? @db.Decimal(18, 2)
-  totalExpenditure Decimal @db.Decimal(18, 2)
-  workOrderDate DateTime?
-  startDate DateTime?
+  id                     String            @id @default(uuid())
+  externalId             String?
+  title                  String
+  description            String?
+  projectType            String?
+  status                 ProjectStatus     @default(PLANNED)
+  sanctionedAmount       Decimal           @db.Decimal(18, 2)
+  estimatedCost          Decimal?          @db.Decimal(18, 2)
+  totalExpenditure       Decimal           @db.Decimal(18, 2)
+  workOrderDate          DateTime?
+  startDate              DateTime?
   expectedCompletionDate DateTime?
-  actualCompletionDate DateTime?
-  progressPercentage Decimal? @db.Decimal(5, 2)
-  districtId String?
-  district District? @relation(fields: [districtId], references: [id])
-  constituencyId String?
-  constituency Constituency? @relation(fields: [constituencyId], references: [id])
-  stateId String?
-  state State? @relation(fields: [stateId], references: [id])
-  agencyId String?
-  agency Agency? @relation(fields: [agencyId], references: [id])
-  mpId String?
-  mp MP? @relation(fields: [mpId], references: [id])
-  dataSourceId String?
-  dataSource DataSourceRecord? @relation(fields: [dataSourceId], references: [id])
-  dataSourceType DataSource @default(OFFICIAL_MPLADS)
-  isSyntheticDemo Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  actualCompletionDate   DateTime?
+  progressPercentage     Decimal?          @db.Decimal(5, 2)
+  districtId             String?
+  district               District?         @relation(fields: [districtId], references: [id])
+  constituencyId         String?
+  constituency           Constituency?     @relation(fields: [constituencyId], references: [id])
+  stateId                String?
+  state                  State?            @relation(fields: [stateId], references: [id])
+  agencyId               String?
+  agency                 Agency?           @relation(fields: [agencyId], references: [id])
+  mpId                   String?
+  mp                     MP?               @relation(fields: [mpId], references: [id])
+  dataSourceId           String?
+  dataSource             DataSourceRecord? @relation(fields: [dataSourceId], references: [id])
+  dataSourceType         DataSource        @default(OFFICIAL_MPLADS)
+  isSyntheticDemo        Boolean           @default(false)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
 
   financialRecords FinancialRecord[]
-  progressRecords ProgressRecord[]
-  anomalies Anomaly[]
-  riskScores RiskScore[]
-  alerts Alert[]
-  auditLogs AuditLog[]
+  progressRecords  ProgressRecord[]
+  anomalies        Anomaly[]
+  riskScores       RiskScore[]
+  alerts           Alert[]
+  auditLogs        AuditLog[]
 
   @@index([status])
   @@index([stateId])
@@ -319,31 +329,31 @@ model Project {
 }
 
 model FinancialRecord {
-  id String @id @default(uuid())
-  projectId String
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  recordDate DateTime
+  id               String   @id @default(uuid())
+  projectId        String
+  project          Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  recordDate       DateTime
   sanctionedAmount Decimal? @db.Decimal(18, 2)
-  expenditure Decimal? @db.Decimal(18, 2)
+  expenditure      Decimal? @db.Decimal(18, 2)
   utilizationRatio Decimal? @db.Decimal(10, 4)
-  description String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  description      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@index([projectId, recordDate])
   @@index([recordDate])
 }
 
 model ProgressRecord {
-  id String @id @default(uuid())
-  projectId String
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  recordDate DateTime
+  id                 String   @id @default(uuid())
+  projectId          String
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  recordDate         DateTime
   progressPercentage Decimal? @db.Decimal(5, 2)
-  physicalProgress Decimal? @db.Decimal(5, 2)
-  financialProgress Decimal? @db.Decimal(5, 2)
-  remarks String?
-  createdAt DateTime @default(now())
+  physicalProgress   Decimal? @db.Decimal(5, 2)
+  financialProgress  Decimal? @db.Decimal(5, 2)
+  remarks            String?
+  createdAt          DateTime @default(now())
 
   @@index([projectId, recordDate])
   @@index([recordDate])
@@ -352,18 +362,18 @@ model ProgressRecord {
 // ===== Analytics and anomaly records =====
 
 model Anomaly {
-  id String @id @default(uuid())
-  projectId String
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  anomalyType AnomalyType
-  severity Severity
-  ruleId String?
-  description String
-  evidence Json?
+  id             String      @id @default(uuid())
+  projectId      String
+  project        Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  anomalyType    AnomalyType
+  severity       Severity
+  ruleId         String?
+  description    String
+  evidence       Json?
   relevantValues Json?
-  isConfirmed Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isConfirmed    Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   alerts Alert[]
 
@@ -374,16 +384,16 @@ model Anomaly {
 }
 
 model RiskScore {
-  id String @id @default(uuid())
-  projectId String
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  riskScore Int
-  riskLevel RiskLevel
-  reasons Json
+  id                  String    @id @default(uuid())
+  projectId           String
+  project             Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  riskScore           Int
+  riskLevel           RiskLevel
+  reasons             Json
   contributingSignals Json?
-  modelVersion String?
-  calculatedAt DateTime @default(now())
-  createdAt DateTime @default(now())
+  modelVersion        String?
+  calculatedAt        DateTime  @default(now())
+  createdAt           DateTime  @default(now())
 
   @@index([projectId])
   @@index([riskLevel])
@@ -391,19 +401,19 @@ model RiskScore {
 }
 
 model Alert {
-  id String @id @default(uuid())
-  projectId String
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  anomalyId String?
-  anomaly Anomaly? @relation(fields: [anomalyId], references: [id])
-  alertId String @unique
+  id          String      @id @default(uuid())
+  projectId   String
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  anomalyId   String?
+  anomaly     Anomaly?    @relation(fields: [anomalyId], references: [id])
+  alertId     String      @unique
   anomalyType AnomalyType
-  severity Severity
-  riskScore Int
-  message String
-  status AlertStatus @default(OPEN)
-  createdAt DateTime @default(now())
-  resolvedAt DateTime?
+  severity    Severity
+  riskScore   Int
+  message     String
+  status      AlertStatus @default(OPEN)
+  createdAt   DateTime    @default(now())
+  resolvedAt  DateTime?
 
   @@index([projectId])
   @@index([status])
@@ -412,18 +422,18 @@ model Alert {
 }
 
 model AuditLog {
-  id String @id @default(uuid())
-  event String
-  actorId String?
-  actor User? @relation(fields: [actorId], references: [id])
-  entity String
-  entityId String?
-  oldValue Json?
-  newValue Json?
-  metadata Json?
+  id        String   @id @default(uuid())
+  event     String
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id])
+  entity    String
+  entityId  String?
+  oldValue  Json?
+  newValue  Json?
+  metadata  Json?
   timestamp DateTime @default(now())
   projectId String?
-  project Project? @relation(fields: [projectId], references: [id])
+  project   Project? @relation(fields: [projectId], references: [id])
 
   @@index([event])
   @@index([entity])
@@ -432,20 +442,20 @@ model AuditLog {
 }
 
 model AggregateStatistic {
-  id String @id @default(uuid())
-  sourceId String?
-  source DataSourceRecord? @relation(fields: [sourceId], references: [id])
-  stateName String?
-  districtName String?
-  year Int?
-  month Int?
-  totalProjects Int?
-  totalSanctionedAmount Decimal? @db.Decimal(18, 2)
-  totalExpenditure Decimal? @db.Decimal(18, 2)
-  meanUtilizationRatio Decimal? @db.Decimal(10, 4)
-  highRiskCount Int?
-  criticalRiskCount Int?
-  createdAt DateTime @default(now())
+  id                    String            @id @default(uuid())
+  sourceId              String?
+  source                DataSourceRecord? @relation(fields: [sourceId], references: [id])
+  stateName             String?
+  districtName          String?
+  year                  Int?
+  month                 Int?
+  totalProjects         Int?
+  totalSanctionedAmount Decimal?          @db.Decimal(18, 2)
+  totalExpenditure      Decimal?          @db.Decimal(18, 2)
+  meanUtilizationRatio  Decimal?          @db.Decimal(10, 4)
+  highRiskCount         Int?
+  criticalRiskCount     Int?
+  createdAt             DateTime          @default(now())
 
   @@index([stateName])
   @@index([districtName])

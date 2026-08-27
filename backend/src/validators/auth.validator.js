@@ -1,49 +1,15 @@
-/*
-IMPLEMENTATION PROMPT
-FILE: backend/src/validators/auth.validator.js
-PURPOSE:
-Validate login and auth payloads before they are used for token generation or credential verification.
+import { z } from 'zod';
 
-PROJECT CONTEXT:
-JWT authentication is required for the MPLADS Sentinel platform. Validation must ensure that malformed input is rejected early.
+export const loginSchema = z.object({
+  email: z.string().trim().email('A valid email is required.'),
+  password: z.string().min(8, 'Password must be at least 8 characters long.'),
+}).passthrough();
 
-TECHNOLOGIES:
-JavaScript, Zod
+export const refreshSchema = z.object({
+  refreshToken: z.string().min(10, 'Refresh token is required.'),
+}).passthrough();
 
-INPUTS:
-- Email and password
-- Optional refresh token body
-
-OUTPUTS:
-- Validated auth payload object
-
-DEPENDENCIES:
-- zod
-
-DATABASE DEPENDENCIES:
-- User, Role
-
-API DEPENDENCIES:
-- Auth route contract
-
-BUSINESS RULES:
-- Email must be structurally valid
-- Password must meet the minimum requirements defined by the project security policy
-
-ERROR HANDLING:
-- Return descriptive 400 errors for invalid payloads
-
-SECURITY REQUIREMENTS:
-- Reject empty or malicious input before verification
-
-ACCEPTANCE CRITERIA:
-- Invalid payloads fail before hitting the auth service or DB layer
-
-WHAT NOT TO CHANGE:
-- Do not implement password hashing or JWT creation here
-
-IMPLEMENTATION NOTES:
-- Keep validators limited to structure validation and support wider service logic
-*/
-
-export const loginSchema = {};
+export const logoutSchema = z.object({
+  token: z.string().optional(),
+  refreshToken: z.string().optional(),
+}).passthrough();

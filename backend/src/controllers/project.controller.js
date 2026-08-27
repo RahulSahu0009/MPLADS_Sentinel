@@ -49,34 +49,63 @@ IMPLEMENTATION NOTES:
 - Prefer typed-like JavaScript objects or JSDoc shapes for clarity when building future implementation
 */
 
+import { ProjectService } from '../services/project.service.js';
+import { projectAnalyzeSchema, projectCreateSchema, projectQuerySchema } from '../validators/project.validator.js';
+
+const withStatus = (message, status, issues) => {
+  const error = new Error(message);
+  error.status = status;
+  if (issues) {
+    error.issues = issues;
+  }
+
+  return error;
+};
+
 export class ProjectController {
+  constructor({ projectService = new ProjectService() } = {}) {
+    this.projectService = projectService;
+  }
+
   async listProjects(filters = {}, user = null) {
-    // TODO: validate filters and call ProjectService
-    return { data: [], filters, user: user?.id ?? null };
+    const parsed = projectQuerySchema.safeParse(filters);
+    if (!parsed.success) {
+      throw withStatus('Invalid project query filters', 400, parsed.error.issues);
+    }
+
+    return this.projectService.listProjects(parsed.data);
   }
 
   async getProjectById(projectId, user = null) {
-    // TODO: fetch project details and related records
-    return { id: projectId, user: user?.id ?? null };
+    return this.projectService.getProjectById(projectId);
   }
 
   async createProject(payload, user = null) {
-    // TODO: validate payload and call project service
-    return { created: true, payload, user: user?.id ?? null };
+    const parsed = projectCreateSchema.safeParse(payload);
+    if (!parsed.success) {
+      throw withStatus('Invalid project payload', 400, parsed.error.issues);
+    }
+
+    const created = await this.projectService.createProject(parsed.data);
+    return { created: true, data: created };
   }
 
   async analyzeProject(projectId, payload = {}, user = null) {
-    // TODO: trigger analysis orchestration
-    return { projectId, payload, user: user?.id ?? null, status: 'queued' };
+    const parsed = projectAnalyzeSchema.safeParse(payload);
+    if (!parsed.success) {
+      throw withStatus('Invalid analyze payload', 400, parsed.error.issues);
+    }
+
+    return this.projectService.analyzeProject(projectId, parsed.data);
   }
 
   async getProjectAnomalies(projectId, user = null) {
-    // TODO: fetch anomaly records for a project
-    return { projectId, anomalies: [], user: user?.id ?? null };
+    const anomalies = await this.projectService.getProjectAnomalies(projectId);
+    return { projectId, anomalies };
   }
 
   async getProjectRisk(projectId, user = null) {
-    // TODO: fetch risk snapshot for the project
-    return { projectId, risk: null, user: user?.id ?? null };
+    const risk = await this.projectService.getProjectRisk(projectId);
+    return { projectId, risk };
   }
 }

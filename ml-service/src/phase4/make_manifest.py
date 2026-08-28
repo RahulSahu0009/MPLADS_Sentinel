@@ -1,0 +1,24 @@
+import json
+import os
+
+manifest = {
+    "dataset_sha256": "229a64e31fb0f3c28be001309e3a5b878a41fa8fb9b0d50b333396de9f620d65",
+    "dataset_version": "1.0",
+    "pipeline_version": "1.0.0",
+    "feature_schema_hash": "2ab534bfee3db2f0d624943a6fdae6beef30f26ff106f6ef6f659ef72b36fdf9",
+    "train_row_count": 8047,
+    "test_row_count": 1953,
+    "train_mp_count": 433,
+    "test_mp_count": 109,
+    "mp_overlap": 0,
+    "random_seed": 42,
+    "reference_date": "2026-08-24"
+}
+
+# Ensure the artifacts directory exists one level up (in the project root)
+os.makedirs("../artifacts/experiment_c/", exist_ok=True)
+
+with open("../artifacts/manifest.json", "w") as f:
+    json.dump(manifest, f, indent=4)
+
+print("✅ Phase 3.1 Manifest cryptographically locked and saved at ../artifacts/manifest.json")

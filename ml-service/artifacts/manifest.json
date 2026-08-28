@@ -1,0 +1,13 @@
+{
+    "dataset_sha256": "229a64e31fb0f3c28be001309e3a5b878a41fa8fb9b0d50b333396de9f620d65",
+    "dataset_version": "1.0",
+    "pipeline_version": "1.0.0",
+    "feature_schema_hash": "903acc2af13bffc8e3fd86a656aafc30d921c29ca7d7e806d2f5190e96314f12",
+    "train_row_count": 8047,
+    "test_row_count": 1953,
+    "train_mp_count": 433,
+    "test_mp_count": 109,
+    "mp_overlap": 0,
+    "random_seed": 42,
+    "reference_date": "2026-08-24"
+}

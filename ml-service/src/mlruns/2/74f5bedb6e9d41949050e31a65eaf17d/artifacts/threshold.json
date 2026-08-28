@@ -1,0 +1,8 @@
+{
+    "method": "oracle_clean_train_quantile_diagnostic",
+    "quantile": 0.99,
+    "alpha": 0.01,
+    "exact_threshold": 0.1096560427370029,
+    "experiment_id": "Exp_B",
+    "training_row_count": 7127
+}

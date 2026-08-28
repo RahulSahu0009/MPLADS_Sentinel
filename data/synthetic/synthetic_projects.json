@@ -1,0 +1,107 @@
+[
+  {
+    "id": "proj-synthetic-001",
+    "externalId": "SYNTH-001",
+    "title": "Construction of Community Hall in Village X",
+    "description": "Normal progressing project without any delays or anomalies.",
+    "projectType": "Infrastructure",
+    "status": "IN_PROGRESS",
+    "sanctionedAmount": 1500000.00,
+    "estimatedCost": 1500000.00,
+    "totalExpenditure": 750000.00,
+    "workOrderDate": "2025-01-15T00:00:00Z",
+    "startDate": "2025-02-01T00:00:00Z",
+    "expectedCompletionDate": "2025-10-01T00:00:00Z",
+    "progressPercentage": 50.00,
+    "dataSourceType": "SYNTHETIC_DEMO",
+    "isSyntheticDemo": true,
+    "financialRecords": [
+      {
+        "recordDate": "2025-05-01T00:00:00Z",
+        "sanctionedAmount": 1500000.00,
+        "expenditure": 750000.00,
+        "utilizationRatio": 0.5000,
+        "description": "Mid-term review release"
+      }
+    ],
+    "progressRecords": [
+      {
+        "recordDate": "2025-05-01T00:00:00Z",
+        "progressPercentage": 50.00,
+        "physicalProgress": 50.00,
+        "financialProgress": 50.00,
+        "remarks": "On track"
+      }
+    ]
+  },
+  {
+    "id": "proj-synthetic-002",
+    "externalId": "SYNTH-002",
+    "title": "Installation of Solar Street Lights",
+    "description": "Project experiencing severe cost overrun and utilization anomaly.",
+    "projectType": "Energy",
+    "status": "IN_PROGRESS",
+    "sanctionedAmount": 500000.00,
+    "estimatedCost": 500000.00,
+    "totalExpenditure": 800000.00,
+    "workOrderDate": "2025-01-10T00:00:00Z",
+    "startDate": "2025-01-20T00:00:00Z",
+    "expectedCompletionDate": "2025-06-20T00:00:00Z",
+    "progressPercentage": 20.00,
+    "dataSourceType": "SYNTHETIC_DEMO",
+    "isSyntheticDemo": true,
+    "financialRecords": [
+      {
+        "recordDate": "2025-04-15T00:00:00Z",
+        "sanctionedAmount": 500000.00,
+        "expenditure": 800000.00,
+        "utilizationRatio": 1.6000,
+        "description": "Additional unauthorized expenditure reported"
+      }
+    ],
+    "progressRecords": [
+      {
+        "recordDate": "2025-04-15T00:00:00Z",
+        "progressPercentage": 20.00,
+        "physicalProgress": 20.00,
+        "financialProgress": 160.00,
+        "remarks": "High expenditure, low physical progress"
+      }
+    ]
+  },
+  {
+    "id": "proj-synthetic-003",
+    "externalId": "SYNTH-003",
+    "title": "Repair of District Road",
+    "description": "Delayed project with stalled progress.",
+    "projectType": "Roads",
+    "status": "DELAYED",
+    "sanctionedAmount": 2000000.00,
+    "estimatedCost": 2000000.00,
+    "totalExpenditure": 500000.00,
+    "workOrderDate": "2024-06-01T00:00:00Z",
+    "startDate": "2024-06-15T00:00:00Z",
+    "expectedCompletionDate": "2024-12-15T00:00:00Z",
+    "progressPercentage": 25.00,
+    "dataSourceType": "SYNTHETIC_DEMO",
+    "isSyntheticDemo": true,
+    "financialRecords": [
+      {
+        "recordDate": "2024-12-01T00:00:00Z",
+        "sanctionedAmount": 2000000.00,
+        "expenditure": 500000.00,
+        "utilizationRatio": 0.2500,
+        "description": "Initial advance only"
+      }
+    ],
+    "progressRecords": [
+      {
+        "recordDate": "2024-12-01T00:00:00Z",
+        "progressPercentage": 25.00,
+        "physicalProgress": 25.00,
+        "financialProgress": 25.00,
+        "remarks": "Work stopped due to material shortage"
+      }
+    ]
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "alert-synth-001",
+    "projectId": "proj-synthetic-002",
+    "anomalyId": "anom-synth-001",
+    "alertId": "ALT-2025-001",
+    "anomalyType": "COST_OVERRUN",
+    "severity": "CRITICAL",
+    "riskScore": 95,
+    "message": "Project expenditure (800,000) exceeds sanctioned amount (500,000) significantly.",
+    "status": "OPEN",
+    "createdAt": "2025-04-16T10:00:00Z"
+  },
+  {
+    "id": "alert-synth-002",
+    "projectId": "proj-synthetic-003",
+    "anomalyId": "anom-synth-002",
+    "alertId": "ALT-2024-089",
+    "anomalyType": "PROJECT_DELAY",
+    "severity": "HIGH",
+    "riskScore": 75,
+    "message": "Project is delayed and physical progress is stalled at 25% near completion date.",
+    "status": "UNDER_REVIEW",
+    "createdAt": "2024-12-05T09:30:00Z"
+  }
+]

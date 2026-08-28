@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+}
+
+/* Splash screen animations */
+@keyframes splash-fade-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes splash-text-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes splash-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.splash-logo    { animation: splash-fade-in  0.5s ease-out 0.1s both; }
+.splash-title   { animation: splash-text-in  0.4s ease-out 0.45s both; }
+.splash-sub     { animation: splash-text-in  0.4s ease-out 0.65s both; }
+.splash-exit    { animation: splash-fade-out 0.4s ease-out forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-logo, .splash-title, .splash-sub, .splash-exit {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

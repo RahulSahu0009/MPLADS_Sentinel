@@ -1,0 +1,23 @@
+artifact_path: file:C:/Users/smrit/OneDrive/Desktop/SIH MPLADS/src/mlruns/1/models/m-990e2290b6514890a257f9dc9454b35d/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.13.5
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.6.1
+    skops_trusted_types: null
+mlflow_version: 3.15.1
+model_id: m-990e2290b6514890a257f9dc9454b35d
+model_size_bytes: 3018254
+model_uuid: m-990e2290b6514890a257f9dc9454b35d
+prompts: null
+run_id: 5829de8fa06b44409d71c0ab3b564e16
+utc_time_created: '2026-08-25 18:52:29.249686'

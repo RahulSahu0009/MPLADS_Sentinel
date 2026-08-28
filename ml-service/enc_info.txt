@@ -1,0 +1,1 @@
+{"fn": ["work_type", "status"], "cats": [["community_hall", "drainage", "road", "school", "water_supply"], ["completed", "delayed", "in_progress", "sanctioned"]]}

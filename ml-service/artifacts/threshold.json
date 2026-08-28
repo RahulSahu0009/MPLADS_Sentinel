@@ -1,0 +1,9 @@
+{
+    "method": "train_quantile",
+    "quantile": 0.9,
+    "alpha": 0.1,
+    "exact_threshold": 0.002781723846387011,
+    "experiment_id": "Exp_C",
+    "training_row_count": 8047,
+    "threshold_value": 0.002781723846387011
+}

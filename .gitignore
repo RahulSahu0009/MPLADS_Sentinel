@@ -1,7 +1,7 @@
 node_modules/
 .env
 .env.local
-.dist/
+dist/
 coverage/
 .vite/
 __pycache__/

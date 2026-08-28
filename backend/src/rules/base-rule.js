@@ -56,7 +56,32 @@ export const ruleOutputShape = {
 };
 
 export class BaseRule {
+  /**
+   * Subclasses must implement run(project, context) and return either
+   * null (no signal) or a result built with createResult().
+   */
   run() {
     return null;
+  }
+
+  /**
+   * Build a structured, serializable rule result that matches
+   * ruleOutputShape and can be consumed directly by RiskService
+   * (reasons/severity) and persisted as an Anomaly (description/evidence).
+   */
+  createResult({ ruleId, anomalyType, severity, message, evidence = {}, relevantValues = {} }) {
+    return {
+      ruleId,
+      anomalyType,
+      severity,
+      message,
+      // Duplicate the message under `reason`/`description` so downstream
+      // consumers (RiskService, Anomaly persistence) can read whichever
+      // field they expect without extra mapping.
+      reason: message,
+      description: message,
+      evidence,
+      relevantValues,
+    };
   }
 }

@@ -17,16 +17,12 @@ export class AuthController {
       throw error;
     }
 
-    const user = {
-      id: payload.id ?? email,
-      email,
-      role: String(payload.role ?? 'ADMIN').toUpperCase(),
-    };
+    const authenticatedUser = await authService.authenticate(email, password);
 
     return {
-      token: authService.issueToken(user),
-      refreshToken: authService.issueToken({ ...user, type: 'refresh' }, '7d'),
-      user: { id: user.id, email: user.email, role: user.role },
+      token: authService.issueToken(authenticatedUser),
+      refreshToken: authService.issueToken({ ...authenticatedUser, type: 'refresh' }, '7d'),
+      user: authenticatedUser,
     };
   }
 

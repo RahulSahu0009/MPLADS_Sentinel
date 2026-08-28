@@ -119,5 +119,9 @@ export const projectAnalyzeSchema = z.object({
     riskScore: z.preprocess(parseNumber, z.number().min(0).max(100)).optional(),
     modelVersion: z.string().trim().min(1).max(120).optional(),
   }).passthrough().optional(),
+  // 'full' runs the complete rules -> ML -> risk -> alerts pipeline against
+  // the live project; 'light' scores only the ruleResults/mlResult the
+  // caller supplies. Defaults to 'full' when omitted (see project.service.js).
+  mode: z.enum(['light', 'full']).optional(),
   persist: z.boolean().optional(),
 }).strict();

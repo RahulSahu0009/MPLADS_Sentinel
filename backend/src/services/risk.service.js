@@ -85,9 +85,9 @@ const clampScore = (value) => {
 };
 
 const scoreToLevel = (score) => {
-  if (score >= 75) return 'CRITICAL';
-  if (score >= 50) return 'HIGH';
-  if (score >= 25) return 'MEDIUM';
+  if (score >= 81) return 'CRITICAL';
+  if (score >= 61) return 'HIGH';
+  if (score >= 31) return 'MEDIUM';
   return 'LOW';
 };
 
@@ -110,7 +110,9 @@ export class RiskService {
         ? signalScore
         : severityScore[signal?.severity] ?? 0;
 
-      if (signal?.reason) {
+      if (signal?.message) {
+        reasons.push(signal.message);
+      } else if (signal?.reason) {
         reasons.push(signal.reason);
       } else if (signal?.description) {
         reasons.push(signal.description);
@@ -125,21 +127,16 @@ export class RiskService {
 
     let modelScore = 0;
     if (mlResult) {
-      const rawRiskScore = Number(mlResult.riskScore);
+      // ML score contributes up to 20 points
       const rawAnomalyScore = Number(mlResult.anomalyScore);
-
-      if (Number.isFinite(rawRiskScore)) {
-        modelScore = clampScore(rawRiskScore);
-      } else if (Number.isFinite(rawAnomalyScore)) {
-        modelScore = rawAnomalyScore <= 1 ? clampScore(rawAnomalyScore * 100) : clampScore(rawAnomalyScore);
+      if (Number.isFinite(rawAnomalyScore)) {
+        modelScore = rawAnomalyScore <= 1 ? clampScore(rawAnomalyScore * 20) : clampScore(rawAnomalyScore);
       }
+      reasons.push('ML Anomaly detected');
     }
 
-    const hasRuleSignals = normalizedRules.length > 0;
-    const hasModelSignal = modelScore > 0;
-    const blendedScore = hasRuleSignals && hasModelSignal
-      ? clampScore((boundedRuleScore * 0.6) + (modelScore * 0.4))
-      : clampScore(Math.max(boundedRuleScore, modelScore));
+    // Direct summation based on defined weights
+    const blendedScore = clampScore(boundedRuleScore + modelScore);
 
     if (reasons.length === 0) {
       reasons.push('No explicit high-risk signals were provided in this analysis input.');

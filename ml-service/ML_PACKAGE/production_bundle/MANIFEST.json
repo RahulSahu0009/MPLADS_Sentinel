@@ -1,0 +1,45 @@
+{
+  "bundle_version": "1.0.0",
+  "pipeline_version": "1.0.0",
+  "experiment": "C",
+  "dataset_sha256": "229a64e31fb0f3c28be001309e3a5b878a41fa8fb9b0d50b333396de9f620d65",
+  "creation_timestamp": "2026-08-26T15:00:58.675795Z",
+  "files": {
+    "duplicate/duplicate_engine_frozen_spec.json": {
+      "sha256": "638d8d37244306846691627869f80fcf352f72e9e69feecab000ecdfa5d963fb",
+      "size_bytes": 565
+    },
+    "model/isolation_forest.joblib": {
+      "sha256": "0c095677fee1d8761c5f36ffcff56214577647b8097a29d8211f00065624092f",
+      "size_bytes": 1387961
+    },
+    "preprocessing/encoder.joblib": {
+      "sha256": "a76775a94f50f58eb88d715d20f90c7553ba1bddd327bc37d2bbcc6f4a85c37a",
+      "size_bytes": 1725
+    },
+    "preprocessing/imputer.joblib": {
+      "sha256": "e1b6f9e2479cb6415421ece3b5a98a0830614f7ab98aab820d07c64a32febe72",
+      "size_bytes": 1760
+    },
+    "preprocessing/preprocessing_stats.json": {
+      "sha256": "4aba9445022f80634a158ad6af6849762c65e0865fa857311420e6bb36b773c8",
+      "size_bytes": 1355
+    },
+    "preprocessing/scaler.joblib": {
+      "sha256": "774be77c60cdbacd814abd16c0af120b6ac6c9ca8d7414ce135a55fa8e7966a6",
+      "size_bytes": 2048
+    },
+    "rules/utilization_calibration_report.json": {
+      "sha256": "600b1a7461bb50b0b408296663d360d41f79743b0ecc2528500fd125d39145b5",
+      "size_bytes": 1683
+    },
+    "schemas/feature_schema.json": {
+      "sha256": "903acc2af13bffc8e3fd86a656aafc30d921c29ca7d7e806d2f5190e96314f12",
+      "size_bytes": 672
+    },
+    "scoring/threshold.json": {
+      "sha256": "c20a0092cab534cad95000304161fdf76f3cecf54bf5eacce23eba89d445bcb8",
+      "size_bytes": 233
+    }
+  }
+}

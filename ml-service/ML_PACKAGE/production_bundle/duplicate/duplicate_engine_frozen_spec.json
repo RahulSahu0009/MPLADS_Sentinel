@@ -1,0 +1,21 @@
+{
+    "dataset_sha256": "229a64e31fb0f3c28be001309e3a5b878a41fa8fb9b0d50b333396de9f620d65",
+    "rule_specification": {
+        "path_a_spatial": {
+            "same_location": true,
+            "text_similarity_min": 0.95,
+            "amount_difference_pct_max": 2.0,
+            "date_gap_days_max": 7.0
+        }
+    },
+    "validation_metrics": {
+        "total_pairs_evaluated": 19637,
+        "tp": 50,
+        "fp": 0,
+        "fn": 0,
+        "tn": 19587,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+    }
+}

@@ -1,0 +1,59 @@
+{
+  "numeric_features": [
+    "cost_deviation_pct",
+    "physical_financial_gap",
+    "avg_exp_per_payment",
+    "project_share_of_allocation",
+    "project_exp_share_of_alloc",
+    "project_age_days",
+    "expected_duration_days",
+    "elapsed_duration_days",
+    "schedule_progress_ratio",
+    "days_overdue",
+    "cost_vs_peer_ratio"
+  ],
+  "categorical_features": ["work_type", "status"],
+  "imputer_statistics": [
+    -4.0384742553245445,
+    -1.6390231181895842,
+    1047115.6933333334,
+    0.03228827789115646,
+    0.022618894217687077,
+    341.0,
+    196.0,
+    171.0,
+    0.9808917197452229,
+    124.0,
+    1.0
+  ],
+  "scaler_mean": [
+    -23.333384607846828,
+    2.63103567300318,
+    1579948.5963800529,
+    0.04529055978167012,
+    0.034735179270711326,
+    401.3518081272524,
+    219.15720144153102,
+    185.69230769230768,
+    0.8680901035391937,
+    231.37740772958867,
+    1.305567299374855
+  ],
+  "scaler_scale": [
+    40.63170836702225,
+    21.21006223311939,
+    1872289.594118712,
+    0.0427684982868326,
+    0.04162641072831259,
+    321.0260437556101,
+    96.35204684154378,
+    120.43777286869364,
+    0.4271894120131433,
+    260.1444501307961,
+    1.0954944131451059
+  ],
+  "encoder_categories": [
+    ["community_hall", "drainage", "road", "school", "water_supply"],
+    ["completed", "delayed", "in_progress", "sanctioned"]
+  ]
+}

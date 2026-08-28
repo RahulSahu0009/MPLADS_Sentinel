@@ -1,0 +1,24 @@
+{
+    "features": [
+        "cost_deviation_pct",
+        "physical_financial_gap",
+        "avg_exp_per_payment",
+        "project_share_of_allocation",
+        "project_exp_share_of_alloc",
+        "project_age_days",
+        "expected_duration_days",
+        "elapsed_duration_days",
+        "schedule_progress_ratio",
+        "days_overdue",
+        "cost_vs_peer_ratio",
+        "work_type_community_hall",
+        "work_type_drainage",
+        "work_type_road",
+        "work_type_school",
+        "work_type_water_supply",
+        "status_completed",
+        "status_delayed",
+        "status_in_progress",
+        "status_sanctioned"
+    ]
+}

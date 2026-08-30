@@ -1,14 +1,45 @@
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env.js';
+import { UserRepository } from '../repositories/user.repository.js';
+import { verifyPassword } from '../lib/crypto.js';
 
 const normalizeRole = (role) => String(role ?? 'GUEST').toUpperCase();
+const userRepository = new UserRepository();
 
 export const authService = {
+  async authenticate(email, password) {
+    if (!email || !password) {
+      const error = new Error('Email and password are required.');
+      error.status = 401;
+      throw error;
+    }
+
+    const user = await userRepository.findByEmail(email);
+    if (!user) {
+      const error = new Error('Invalid email or password.');
+      error.status = 401;
+      throw error;
+    }
+
+    const isValid = verifyPassword(password, user.passwordHash);
+    if (!isValid) {
+      const error = new Error('Invalid email or password.');
+      error.status = 401;
+      throw error;
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      role: normalizeRole(user.role?.name),
+    };
+  },
+
   issueToken(user, expiresIn = config.jwtExpiresIn) {
     const safeUser = {
       id: user?.id ?? user?.email ?? 'guest',
       email: user?.email ?? null,
-      role: normalizeRole(user?.role),
+      role: normalizeRole(itemRole(user)),
     };
 
     return jwt.sign(
@@ -41,3 +72,10 @@ export const authService = {
     };
   },
 };
+
+function itemRole(user) {
+  if (typeof user?.role === 'object') {
+    return user.role?.name;
+  }
+  return user?.role;
+}

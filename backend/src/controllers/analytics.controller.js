@@ -49,19 +49,40 @@ IMPLEMENTATION NOTES:
 - Keep names aligned with the frontend analytics and dashboard services
 */
 
+import { AnalyticsService } from '../services/analytics.service.js';
+import { analyticsQuerySchema } from '../validators/analytics.validator.js';
+
+const withStatus = (message, status, issues) => {
+  const error = new Error(message);
+  error.status = status;
+  if (issues) {
+    error.issues = issues;
+  }
+  return error;
+};
+
 export class AnalyticsController {
+  constructor({ analyticsService = new AnalyticsService() } = {}) {
+    this.analyticsService = analyticsService;
+  }
+
+  parseFilters(filters) {
+    const parsed = analyticsQuerySchema.safeParse(filters);
+    if (!parsed.success) {
+      throw withStatus('Invalid analytics query filters', 400, parsed.error.issues);
+    }
+    return parsed.data;
+  }
+
   async getStateAnalytics(filters = {}, user = null) {
-    // TODO: aggregate state-level metrics and risk summaries
-    return { type: 'state', filters, user: user?.id ?? null, data: [] };
+    return this.analyticsService.getStateAnalytics(this.parseFilters(filters), user);
   }
 
   async getDistrictAnalytics(filters = {}, user = null) {
-    // TODO: aggregate district-level metrics
-    return { type: 'district', filters, user: user?.id ?? null, data: [] };
+    return this.analyticsService.getDistrictAnalytics(this.parseFilters(filters), user);
   }
 
   async getDashboardStats(filters = {}, user = null) {
-    // TODO: build KPI summary for dashboard cards and charts
-    return { type: 'dashboard', filters, user: user?.id ?? null, data: {} };
+    return this.analyticsService.getDashboardStats(this.parseFilters(filters), user);
   }
 }

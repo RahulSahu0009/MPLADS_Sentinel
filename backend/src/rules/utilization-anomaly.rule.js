@@ -50,6 +50,54 @@ IMPLEMENTATION NOTES:
 
 import { BaseRule } from './base-rule.js';
 
+const toNumber = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 export class UtilizationAnomalyRule extends BaseRule {
-  // TODO: implement utilization anomaly detection logic
+  run(project = {}) {
+    const sanctionedAmount = toNumber(project.sanctionedAmount);
+    const totalExpenditure = toNumber(project.totalExpenditure);
+    const progressPercentage = toNumber(project.progressPercentage);
+
+    if (sanctionedAmount === null || sanctionedAmount <= 0 || totalExpenditure === null || progressPercentage === null) {
+      return null;
+    }
+
+    const utilizationRatio = (totalExpenditure / sanctionedAmount) * 100; // % of funds spent
+    const gap = utilizationRatio - progressPercentage; // positive = over-spent vs. progress
+
+    // Over-utilization: money spent well ahead of physical/overall progress —
+    // a common irregularity signal (funds drawn without matching work done).
+    if (gap >= 20) {
+      const severity = gap >= 60 ? 'CRITICAL' : gap >= 40 ? 'HIGH' : 'MEDIUM';
+      return this.createResult({
+        ruleId: 'FUND_UTILIZATION_ANOMALY',
+        anomalyType: 'FUND_UTILIZATION_ANOMALY',
+        severity,
+        message: `Fund utilization (${utilizationRatio.toFixed(1)}%) is running ${gap.toFixed(1)} points ahead of reported progress (${progressPercentage}%).`,
+        evidence: { sanctionedAmount, totalExpenditure, utilizationRatio: Number(utilizationRatio.toFixed(2)), progressPercentage, gap: Number(gap.toFixed(2)) },
+        relevantValues: { sanctionedAmount, totalExpenditure, progressPercentage },
+      });
+    }
+
+    // Under-utilization: significant progress claimed with very little
+    // spend — either a reporting inconsistency or funds not actually
+    // flowing to match reported work.
+    if (progressPercentage >= 40 && utilizationRatio <= progressPercentage - 30) {
+      const underGap = progressPercentage - utilizationRatio;
+      const severity = underGap >= 60 ? 'HIGH' : 'MEDIUM';
+      return this.createResult({
+        ruleId: 'FUND_UTILIZATION_ANOMALY',
+        anomalyType: 'FUND_UTILIZATION_ANOMALY',
+        severity,
+        message: `Reported progress (${progressPercentage}%) significantly exceeds fund utilization (${utilizationRatio.toFixed(1)}%).`,
+        evidence: { sanctionedAmount, totalExpenditure, utilizationRatio: Number(utilizationRatio.toFixed(2)), progressPercentage, underGap: Number(underGap.toFixed(2)) },
+        relevantValues: { sanctionedAmount, totalExpenditure, progressPercentage },
+      });
+    }
+
+    return null;
+  }
 }

@@ -65,6 +65,10 @@ export const app = express();
 app.use(cors({ origin: config.frontendOrigin, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 
+app.get('/', (_req, res) => {
+  res.json({ message: 'Welcome to MPLADS Sentinel API. Go to /api for endpoints or /health for status.' });
+});
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'mplads-sentinel-backend' });
 });

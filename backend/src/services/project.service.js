@@ -52,6 +52,7 @@ IMPLEMENTATION NOTES:
 
 import { ProjectRepository } from '../repositories/project.repository.js';
 import { RiskService } from './risk.service.js';
+import { AnalysisService } from './analysis.service.js';
 
 const withStatus = (message, status) => {
   const error = new Error(message);
@@ -60,9 +61,14 @@ const withStatus = (message, status) => {
 };
 
 export class ProjectService {
-  constructor({ projectRepository = new ProjectRepository(), riskService = new RiskService() } = {}) {
+  constructor({
+    projectRepository = new ProjectRepository(),
+    riskService = new RiskService(),
+    analysisService = new AnalysisService(),
+  } = {}) {
     this.projectRepository = projectRepository;
     this.riskService = riskService;
+    this.analysisService = analysisService;
   }
 
   async listProjects(filters = {}) {
@@ -120,6 +126,29 @@ export class ProjectService {
 
   async analyzeProject(projectId, options = {}) {
     const project = await this.getProjectById(projectId);
+
+    // Two modes: 'light' scores only the rule/ML signals the caller
+    // supplies (fast, no rule engine or ML call — useful for testing or
+    // pre-computed inputs). 'full' runs the entire AnalysisService
+    // pipeline (rules -> ML -> risk -> alerts) against the live project.
+    // Default to 'full' unless the caller explicitly hands us light-mode
+    // inputs or asks for light mode, so POST /projects/:id/analyze
+    // triggers real analysis by default.
+    const explicitLightInputs = Boolean(options.ruleResults?.length || options.mlResult);
+    const mode = options.mode ?? (explicitLightInputs ? 'light' : 'full');
+
+    if (mode === 'full') {
+      const result = await this.analysisService.analyzeProject(project, options);
+      return {
+        projectId,
+        analysis: { status: result.risk?.id ? 'completed' : 'computed', mode: 'full' },
+        risk: result.risk,
+        ruleResults: result.ruleResults,
+        alerts: result.alerts,
+        warnings: result.warnings,
+      };
+    }
+
     const riskPayload = await this.riskService.computeRisk(
       project,
       options.ruleResults ?? [],
@@ -133,7 +162,7 @@ export class ProjectService {
 
     return {
       projectId,
-      analysis: { status: shouldPersist ? 'completed' : 'computed' },
+      analysis: { status: shouldPersist ? 'completed' : 'computed', mode: 'light' },
       risk: persisted,
     };
   }

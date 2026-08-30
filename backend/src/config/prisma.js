@@ -48,11 +48,16 @@ IMPLEMENTATION NOTES:
 
 import { PrismaClient } from '@prisma/client';
 import { config } from './env.js';
+import { createMockPrisma } from './prisma.mock.js';
 
 const globalForPrisma = globalThis;
 
-const createPrismaClient = () =>
-  new PrismaClient({
+const createPrismaClient = () => {
+  if (process.env.USE_MOCK_DB === 'true') {
+    console.log('Using in-memory Mock Prisma Client for local testing');
+    return createMockPrisma();
+  }
+  return new PrismaClient({
     datasources: {
       db: {
         url: config.databaseUrl,
@@ -60,6 +65,7 @@ const createPrismaClient = () =>
     },
     log: config.nodeEnv === 'development' ? ['warn', 'error'] : ['error'],
   });
+};
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
